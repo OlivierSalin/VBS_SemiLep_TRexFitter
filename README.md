@@ -2,7 +2,9 @@
 
 ## Getting started
 
-https://trexfitter-docs.web.cern.ch/trexfitter-docs/latest/
+https://trexfitter-docs.web.cern.ch/trexfitter-docs/latest/  (if ATLAS access)
+
+git clone  https://github.com/OlivierSalin/VBS_SemiLep_TRexFitter.git
 
 Run command to setup the environment:
 ```
