@@ -36,11 +36,60 @@ Run from ntuples:
 trex-fitter nwdfp VBS_2lep_fit_ntuples.config
 ```
 
+
 ## Which config to use
 
 - EFT fit (POI set to 0.0): `VBS_2lep_EFT_Ntuples_FT0.config`
 - Prefit yield and plots (POI set to 0.0): `Yields_VBS_2lep_EFT_Ntuples_FT0.config`
     The fit values in this config are for plotting only, to see the aQGC signal yield.
+
+
+## CL95 extraction
+
+The script `CL95_aQGC_limit_yield.py` extracts the 95% CL limits from the NLL scan YAML
+and writes a summary text file, yields tables, and a PNG curve with the 95% line and
+vertical limits.
+
+### Quick usage (folder mode)
+
+Run from the `VBS_SemiLep_TRexFitter` directory and pass only the folder name that
+contains `LHoodPlots/` and `Tables/`, the parameter should be the jobname of the .config file that we want to plot:
+```
+python3 CL95_aQGC_limit_yield.py --folder VBS_SemiLep_aQGC_FT0
+```
+
+The operator (FT0/FS0/FM0) is inferred from the folder name.
+
+### Options
+
+- `--folder <name>`: Folder name (relative to cwd) with `LHoodPlots/NLLscan_<op>.yaml`.
+- `--op <FT0|FS0|FM0>`: Explicit operator (use this if you do not use `--folder`).
+- `--ops <FT0 FS0 FM0>`: Multiple operators (combined output file).
+- `--config <file>`: Read mVV_SR_HP binning from a TRExFitter config file.
+- `--binning <csv>`: Comma-separated binning override (takes precedence over config).
+- `--Spe <tag>`: Optional selection tag to organize outputs under `CL_95/<tag>/`.
+
+Example with explicit config and binning override:
+```
+python3 CL95_aQGC_limit_yield.py --folder VBS_SemiLep_aQGC_FT0 \
+    --config VBS_2lep_EFT_Ntuples_FT0.config
+
+python3 CL95_aQGC_limit_yield.py --folder VBS_SemiLep_aQGC_FT0 \
+    --binning 0,500,1000,1500,2000,2500,3000,8000
+```
+
+### Outputs
+
+By default outputs are written to `CL_95/` (or `CL_95/<Spe>/` if provided):
+
+- `CL95_<op>.txt`: summary with CL95 limits, sources, regions used, and binning.
+- `CL95_<op>_yields_prefit.csv`: yields table (prefit).
+- `CL95_<op>_yields_prefit.xlsx`: yields table (prefit, if `openpyxl` installed).
+- `CL95_<op>_curve.png`: NLL curve with the 95% CL line and vertical limits.
+
+The text output includes a `nll_curve_plots` block pointing to the PNG path.
+
+
 
 ## Understanding the config blocks
 
@@ -97,6 +146,12 @@ NormFactor: "FT0_QUAD"
     Expression: (FT0*FT0):FT0[0.0,-3,3]
     Title: "f_{T0} QUAD"
 ```
+
+
+
+
+
+
 
 ## Reweighted EFT samples
 
