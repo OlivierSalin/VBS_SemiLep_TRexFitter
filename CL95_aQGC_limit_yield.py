@@ -459,7 +459,7 @@ def find_crossing_one_side(points_in_order, target):
     return (None, closest, None)
 
 
-def plot_nll_with_cl(output_dir, op, pts, left_cl, right_cl, binning=None):
+def plot_nll_with_cl(output_dir, op, pts, left_cl, right_cl, binning=None,args=None):
     if not pts:
         return None
     os.makedirs(output_dir, exist_ok=True)
@@ -471,10 +471,11 @@ def plot_nll_with_cl(output_dir, op, pts, left_cl, right_cl, binning=None):
     ax.plot(xs, ys, marker="o", linestyle="-", color="black", markersize=3)
     ax.axhline(TARGET, color="red", linestyle="--", linewidth=1, label="95% CL")
 
-    if left_cl is not None:
-        ax.axvline(left_cl, color="blue", linestyle="--", linewidth=1)
-    if right_cl is not None:
-        ax.axvline(right_cl, color="blue", linestyle="--", linewidth=1)
+    if args.x_line_CL:
+        if left_cl is not None:
+            ax.axvline(left_cl, color="blue", linestyle="--", linewidth=1)
+        if right_cl is not None:
+            ax.axvline(right_cl, color="blue", linestyle="--", linewidth=1)
 
     if binning:
         ax.set_xticks(binning)
@@ -489,7 +490,7 @@ def plot_nll_with_cl(output_dir, op, pts, left_cl, right_cl, binning=None):
     ax.set_xlim(min(xs), max(xs))
     ax.set_ylim(0, 3)
 
-    ax.xaxis.set_major_locator(MultipleLocator(0.1))
+    ax.xaxis.set_major_locator(MultipleLocator(args.x_ticks))
     ax.xaxis.set_minor_locator(AutoMinorLocator(5))
     ax.yaxis.set_major_locator(MultipleLocator(0.5))
     ax.yaxis.set_minor_locator(AutoMinorLocator(5))
@@ -534,6 +535,9 @@ def main():
         help="Comma-separated binning for mVV_SR_HP (overrides config), e.g. 0,500,1000,1500,2000,2500,3000,8000",
     )
     parser.add_argument("--Spe", default="")
+    parser.add_argument("--out_dir", default="CL_95", help="Output directory for results (default: CL_95)")
+    parser.add_argument("--x_ticks", default=0.1, type=float, help="Spacing for x-axis ticks in the NLL plot (default: 0.1)")
+    parser.add_argument("--x_line_CL", default=False, type=bool, help="Whether to show a vertical line at the 95% CL level")
     args = parser.parse_args()
 
     # Folder-mode: derive operator from folder name and use cwd as base.
@@ -570,18 +574,20 @@ def main():
 
     if spe != "":
         print("Specific selection")
-        os.makedirs(f"CL_95/{spe}", exist_ok=True)
-        out_dir = f"CL_95/{spe}"
+        os.makedirs(f"{args.out_dir}/{spe}", exist_ok=True)
+        out_dir = f"{args.out_dir}/{spe}"
     else:
-        os.makedirs("CL_95", exist_ok=True)
-        out_dir = "CL_95"
+        os.makedirs(args.out_dir, exist_ok=True)
+        out_dir = args.out_dir
 
     if combined_mode:
         outpath = os.path.join(out_dir, "CL95_all.txt")
     else:
         outpath = os.path.join(out_dir, f"CL95_{ops[0]}.txt")
+    simple_limits_path = os.path.join(out_dir, "CL95_limits.txt")
 
     limits_lines = []
+    simple_limits_lines = []
     yields_table_rows = []
     yields_sources = {}
     regions_used_by_op = {}
@@ -620,10 +626,11 @@ def main():
         left_CL = round(left_res[0], 3) if left_res[0] is not None else "None"
         right_CL = round(right_res[0], 3) if right_res[0] is not None else "None"
         limits_lines.append(f"{op}: [{left_CL}, {right_CL}]  ")
+        simple_limits_lines.append(f"{op}:[{left_CL},{right_CL}]")
 
         plot_left = left_res[0] if left_res[0] is not None else None
         plot_right = right_res[0] if right_res[0] is not None else None
-        plot_path = plot_nll_with_cl(out_dir, op, pts, plot_left, plot_right, binning=binning)
+        plot_path = plot_nll_with_cl(out_dir, op, pts, plot_left, plot_right, binning=binning,args=args)
         if plot_path:
             curve_paths[op] = plot_path
 
@@ -731,10 +738,20 @@ def main():
         out.write(yields_text)
         out.write("\n")
 
+    with open(simple_limits_path, "w") as out_simple:
+        for line in simple_limits_lines:
+            out_simple.write(line + "\n")
+
     print(f"Wrote: {outpath}")
+    print(f"Wrote: {simple_limits_path}")
     print(f"Wrote: {yields_csv_path}")
     if yields_xlsx_path is not None:
         print(f"Wrote: {yields_xlsx_path}")
+    
+    print(f"\nCL95 limits for {ops}")
+    for op in ops:
+        print(f"  {op}: [{left_CL}, {right_CL}]")
+
 
 
 if __name__ == "__main__":

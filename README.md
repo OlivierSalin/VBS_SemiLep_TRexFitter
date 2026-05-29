@@ -36,8 +36,7 @@ Run from ntuples:
 trex-fitter nwdfp VBS_2lep_fit_ntuples.config
 ```
 
-
-## Which config to use
+### Which config to use
 
 - EFT fit (POI set to 0.0): `VBS_2lep_EFT_Ntuples_FT0.config`
 - Prefit yield and plots (POI set to 0.0): `Yields_VBS_2lep_EFT_Ntuples_FT0.config`
@@ -67,6 +66,9 @@ The operator (FT0/FS0/FM0) is inferred from the folder name.
 - `--ops <FT0 FS0 FM0>`: Multiple operators (combined output file).
 - `--config <file>`: Read mVV_SR_HP binning from a TRExFitter config file.
 - `--binning <csv>`: Comma-separated binning override (takes precedence over config).
+- `--out_dir <dir>`: Output directory for results (default: `CL_95`).
+- `--x_ticks <float>`: Change the x axis ticks range (tto be updated to avoid too crowded plots)
+- `--x_line_CL <bool>`: Whether to draw vertical lines at the 95% CL crossings.
 - `--Spe <tag>`: Optional selection tag to organize outputs under `CL_95/<tag>/`.
 
 Example with explicit config and binning override:
@@ -86,6 +88,7 @@ By default outputs are written to `CL_95/` (or `CL_95/<Spe>/` if provided):
 - `CL95_<op>_yields_prefit.csv`: yields table (prefit).
 - `CL95_<op>_yields_prefit.xlsx`: yields table (prefit, if `openpyxl` installed).
 - `CL95_<op>_curve.png`: NLL curve with the 95% CL line and vertical limits.
+- `CL95_limits.txt`: plain one-line limits (e.g. `FT0:[left,right]`).
 
 The text output includes a `nll_curve_plots` block pointing to the PNG path.
 
